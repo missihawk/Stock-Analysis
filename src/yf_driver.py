@@ -10,7 +10,8 @@ def start_driver(headless: bool = True) -> webdriver.Chrome:
     if headless:
         options.add_argument("--headless=new")
     options.add_argument("--disable-gpu")
-    options.add_argument("--use-gl=swiftshader")
+    options.add_argument("--use-gl=angle")
+    options.add_argument("--use-angle=swiftshader")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("window-size=1920,1080")
@@ -23,7 +24,7 @@ def start_driver(headless: bool = True) -> webdriver.Chrome:
     driver.implicitly_wait(3)
     return driver
 
-def open_yf_and_accept_cookies(driver: webdriver.Chrome) -> None:
+def open_yf(driver: webdriver.Chrome) -> None:
     url = "https://finance.yahoo.com/"
     driver.get(url)
 

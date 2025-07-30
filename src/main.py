@@ -1,9 +1,10 @@
-from yf_driver import start_driver, open_yf_and_accept_cookies, close_driver
+from yf_driver import start_driver, open_yf, close_driver
+from fetch.financials import fetch_financials
 
-def main():
-    driver = start_driver(headless=True)
-    open_yf_and_accept_cookies(driver)
-    close_driver(driver)
+driver = start_driver(headless=True)
+open_yf(driver)  # cookies accepteren
 
-if __name__ == "__main__":
-    main()
+df = fetch_financials(driver, "BFIT.AS", save_html=True)
+print(df)
+
+close_driver(driver)
