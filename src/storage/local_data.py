@@ -1,6 +1,7 @@
 import os
 import pickle
 import pandas as pd
+from datetime import datetime
 
 def load_data(ticker: str, folder="data") -> dict:
     path = os.path.join(folder, f"{ticker.upper()}.pkl")
@@ -49,8 +50,8 @@ def merge_statement_data(
     new_df.reset_index(inplace=True)
     new_df.rename(columns={"index": "date"}, inplace=True)
 
-    # Convert date strings to proper datetime (and back to ISO string format)
-    new_df["date"] = pd.to_datetime(new_df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    # Convert date strings to datetime.date objects
+    new_df["date"] = pd.to_datetime(new_df["date"], errors="coerce").dt.date
 
     for _, row in new_df.iterrows():
         date = row["date"]
