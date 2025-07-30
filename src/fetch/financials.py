@@ -13,14 +13,12 @@ def fetch_yahoo_statement(driver, ticker: str, statement_type: str, save_html: b
     url = f"https://finance.yahoo.com/quote/{ticker}/{statement_type}"
     driver.get(url)
 
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(2)
-
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
 
     # Wacht op table container
     try:
-        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.tableContainer.yf-9ft13")))
+        tab = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.tableContainer.yf-9ft13")))
+        tab.click()
     except:
         print(f"[{ticker.upper()}] ⚠️ Tabel niet gevonden.")
         return pd.DataFrame()
