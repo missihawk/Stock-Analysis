@@ -26,7 +26,7 @@ def open_yf(driver: webdriver.Chrome) -> None:
     driver.get(url)
 
     try:
-        accept_button = WebDriverWait(driver, 20).until(
+        accept_button = WebDriverWait(driver, 5).until(
             EC.element_to_be_clickable((By.NAME, "agree"))
         )
         accept_button.click()
