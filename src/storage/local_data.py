@@ -1,6 +1,6 @@
 import os
 import pickle
-from datetime import datetime
+import pandas as pd
 
 def load_data(ticker: str, folder="data") -> dict:
     path = os.path.join(folder, f"{ticker.upper()}.pkl")
@@ -15,50 +15,69 @@ def save_data(ticker: str, data: dict, folder="data"):
     with open(path, "wb") as f:
         pickle.dump(data, f)
 
-def merge_statement_data(existing_data: dict, new_df, report_type: str) -> dict:
+def merge_statement_data(
+    existing_data: dict,
+    new_df,
+    statement_type: str,
+    report_type: str  # e.g. 'FY' for annual, 'Q' for quarterly
+) -> dict:
+    """
+    Merge a financial statement into the existing_data structure.
+
+    Args:
+        existing_data (dict): The current dataset to update.
+        new_df (pd.DataFrame): A financial statement dataframe from Yahoo.
+        statement_type (str): Type of statement ('income', 'cashflow', 'balance').
+        report_type (str): Reporting period ('FY' for yearly, 'Q' for quarterly).
+
+    Returns:
+        dict: Updated dataset with the merged statement.
+    """
+
+    # Prepare root level if needed
     if report_type not in existing_data:
         existing_data[report_type] = {}
 
-    # Zet eerste kolom als index, transposeer, reset
-    new_df.set_index("Breakdown", inplace=True)
-    df = new_df.transpose()
-    df.reset_index(inplace=True)
-    df.rename(columns={"index": "date"}, inplace=True)
+    # Drop TTM (Trailing Twelve Months) row if present
+    if "TTM" in new_df.columns:
+        new_df = new_df.drop(columns=["TTM"])
 
-    # Filter ongeldige of ongewenste datums zoals "TTM"
-    df = df[df["date"].apply(lambda x: x != "TTM" and isinstance(x, str) and len(x) >= 4)]
+    # Convert format: set 'Breakdown' as index so each column becomes a report date
+    new_df = new_df.set_index("Breakdown").transpose()
 
-    for _, row in df.iterrows():
-        raw_date = row["date"]
-        try:
-            date_obj = datetime.strptime(raw_date, "%m/%d/%Y")  # of "%Y-%m-%d"
-        except ValueError:
-            try:
-                date_obj = datetime.strptime(raw_date, "%Y-%m-%d")
-            except ValueError:
-                print(f"⚠️ Ongeldige datum '{raw_date}' overgeslagen")
-                continue
+    # Reset index to get a column called 'date'
+    new_df.reset_index(inplace=True)
+    new_df.rename(columns={"index": "date"}, inplace=True)
 
-        # Zet als string (of gebruik date_obj als je datums wil)
-        date = date_obj.strftime("%Y-%m-%d")
+    # Convert date strings to proper datetime (and back to ISO string format)
+    new_df["date"] = pd.to_datetime(new_df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
 
-        # Dubbelcheck op bestaand datapunt
+    for _, row in new_df.iterrows():
+        date = row["date"]
+
+        if pd.isna(date):
+            continue  # skip invalid or NaT dates
+
+        # Create date entry if not present
         if date not in existing_data[report_type]:
             existing_data[report_type][date] = {}
 
-        for col in row.index:
+        # Insert statement_type data
+        existing_data[report_type][date][statement_type] = {}
+
+        for col in new_df.columns:
             if col == "date":
                 continue
 
-            # Optioneel: getal omzetten van string met komma naar float
             val = row[col]
+
+            # Optional: convert numbers with commas to floats
             if isinstance(val, str):
-                val = val.replace(",", "")
                 try:
-                    val = float(val)
+                    val = float(val.replace(",", ""))
                 except ValueError:
                     pass
 
-            existing_data[report_type][date][col] = val
+            existing_data[report_type][date][statement_type][col] = val
 
     return existing_data

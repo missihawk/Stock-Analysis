@@ -9,8 +9,13 @@ ticker = "BFIT.AS"
 report_type = "FY"
 
 df_income = fetch_yf_statement(driver, ticker, "financials", report_type)
+df_cashflow = fetch_yf_statement(driver, ticker, "cash-flow", report_type)
+df_balance = fetch_yf_statement(driver, ticker, "balance-sheet", report_type)
 data = load_data(ticker)
-data = merge_statement_data(data, df_income, report_type)
+data = merge_statement_data(data, df_income, "income", "FY")
+data = merge_statement_data(data, df_cashflow, "cashflow", "FY")
+data = merge_statement_data(data, df_balance, "balance", "FY")
+
 save_data(ticker, data)
 
 close_driver(driver)
