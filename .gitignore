@@ -1,5 +1,12 @@
 # Basic setup folders
 .vscode
+
+# Python cleanup
 .venv
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*.pyo
+__pycache__/
+
 # Ignore historic data (for now)
 /html
