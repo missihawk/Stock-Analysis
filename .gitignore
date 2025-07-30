@@ -1,2 +1,5 @@
+# Basic setup folders
 .vscode
 .venv
+# Ignore historic data (for now)
+/html
