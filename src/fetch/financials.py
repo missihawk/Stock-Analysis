@@ -6,17 +6,28 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-def fetch_yahoo_statement(driver, ticker: str, statement_type: str, save_html: bool = False) -> pd.DataFrame:
+def fetch_yf_statement(driver, ticker: str, statement_type: str, report_type="FY", save_html: bool = False) -> pd.DataFrame:
     """
+    report_type: one of "FY", "Q"
     statement_type: one of "financials", "balance-sheet", "cash-flow"
     """
     url = f"https://finance.yahoo.com/quote/{ticker}/{statement_type}"
     driver.get(url)
 
-    wait = WebDriverWait(driver, 20)
-
+    # Klik op de 'Quarterly'-tab als dat nodig is
+    if report_type.upper() == "Q":
+        try:
+            quarterly_tab = driver.find_element(By.CSS_SELECTOR, "button[title='Quarterly']")
+            if quarterly_tab.get_attribute("aria-selected") == "false":
+                quarterly_tab.click()
+                time.sleep(1)
+        except Exception as e:
+            print(f"[{ticker.upper()}] ⚠️ Quarterly-tab niet klikbaar: {e}")
+            return pd.DataFrame()
+    
     # Wacht op table container
     try:
+        wait = WebDriverWait(driver, 20)
         tab = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.tableContainer.yf-9ft13")))
         tab.click()
     except:
