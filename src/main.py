@@ -5,17 +5,14 @@ from storage.local_data import load_data, merge_statement_data, save_data
 driver = start_driver(True)
 open_yf(driver)  # cookies accepteren
 
-ticker = "BFIT.AS"
-report_type = "Q"
+for ticker in ["AXS.AS", "ACOMO.AS", "ALFEN.AS", "BFIT.AS", "BMW3.DE", "DTE.DE", "FNTN.DE", "BOSS.DE", "KENDR.AS", "MBG.DE", "NEDAP.AS", "SLIGR.AS", "TKA.DE", "VLK.AS", "VOW3.DE", "ZAL.DE"]:
+    data = load_data(ticker)
 
-df_income = fetch_yf_statement(driver, ticker, "financials", report_type)
-df_cashflow = fetch_yf_statement(driver, ticker, "cash-flow", report_type)
-df_balance = fetch_yf_statement(driver, ticker, "balance-sheet", report_type)
-data = load_data(ticker)
-data = merge_statement_data(data, df_income, "income", report_type)
-data = merge_statement_data(data, df_cashflow, "cashflow", report_type)
-data = merge_statement_data(data, df_balance, "balance", report_type)
+    for report_type in ["FY", "Q"]:
+        for statement_type in ["financials", "balance-sheet", "cash-flow"]:
+            df = fetch_yf_statement(driver, ticker, statement_type, report_type)
+            data = merge_statement_data(data, df, statement_type, report_type)
 
-save_data(ticker, data)
+    save_data(ticker, data)
 
 close_driver(driver)
