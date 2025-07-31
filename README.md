@@ -1,0 +1,1 @@
+To run the venv: `.venv\Scripts\Activate.ps1`
